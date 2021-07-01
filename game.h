@@ -6,6 +6,9 @@
 constexpr int H = 9;
 constexpr int W = 7;
 constexpr int RANDOM_TILE_COUNT = 2;
+constexpr int CYCLE_SCORE = -5;
+constexpr int LOOPBACK_SCORE = -3;
+constexpr int VERTEX_COUNT = (H + 1)*W + (W + 1)*H;
 
 enum Tile { NO_TILE = 0, LEFT = 1, STRAIGHT = 2, RIGHT = 3 };
 
@@ -18,6 +21,10 @@ inline Player Other(Player player) {
   return Player(RED + BLUE - player);
 }
 
+inline int PlayerIndex(Player player) {
+  assert(player == BLUE || player == RED);
+  return player - BLUE;
+}
 
 std::string FormatPlayer(Player player);
 Player NextPlayer(int moveIndex);
@@ -28,39 +35,18 @@ struct Move {
   Tile tile;
 };
 
-struct Path {
-  static Path Merged(const Path &p, const Path &q) {
-    Path r;
-    r.length = p.length + q.length;
-    r.connects_side[0] = p.connects_side[0] || q.connects_side[0];
-    r.connects_side[1] = p.connects_side[1] || q.connects_side[1];
-    r.connects_outside = p.connects_outside || q.connects_outside;
-    return r;
+class State;
+
+class State {
+public:
+  State() {
+    for (int v = 0; v < VERTEX_COUNT; ++v) {
+      path_index[v] = Path{.other_end = v, .length = 0};
+    }
   }
 
-  bool ConnectsOutside() const {
-    return connects_outside;
-  }
-
-  bool ConnectsSide(Player player) const {
-    assert(player == BLUE || player == RED);
-    return connects_side[player - BLUE];
-  }
-
-  int Length() const {
-    return length;
-  }
-
-private:
-  int length = 0;
-  bool connects_side[2] = {false, false};  // blue side / red side
-  bool connects_outside = false;  // bottom or top
-};
-
-struct State {
   int Score(Player player) const  {
-    assert(player == BLUE || player == RED);
-    return scores[player - BLUE];
+    return scores[PlayerIndex(player)];
   }
 
   bool IsOccupied(int r, int c) const {
@@ -75,11 +61,18 @@ struct State {
   void Execute(const Move &m);
 
 private:
+  struct Path {
+    int other_end;
+    int length;
+  };
+
+  void Connect(int a, int b, int c, int d, Player player);
+  void Connect(int a, int b, Player player);
+
   bool occupied[H][W] = {};
-  int scores[2] = {0, 0};
+  int scores[2] = {50, 50};
   int moves_played = 0;
-  std::array<std::array<int, W>, H> path_index = {};
-  std::vector<Path> paths = {Path()};
+  Path path_index[VERTEX_COUNT];
 };
 
 bool ParseMove(const std::string &s, Move &move);

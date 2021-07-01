@@ -2,7 +2,7 @@
 
 CC=g++
 CXX=g++
-CFLAGS=-Wall -Wextra -pipe -O2 -march=native -g -DDEBUG
+CFLAGS=-Wall -Wextra -pipe -O2 -march=native -g -DDEBUG -Wno-sign-compare
 CXXFLAGS=$(CFLAGS) --std=c++17
 LDLIBS=-lm
 OUTPUT_OPTION=-MMD -MP -o $@

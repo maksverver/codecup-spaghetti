@@ -88,7 +88,7 @@ int main() {
       std::cerr << "Received [" << move_string << "]" << std::endl;
     }
     state.Execute(ParseAndValidateMove(state, move_string));
-    std::cerr << "Scores " << state.Score(BLUE) << '-' << state.Score(RED) << "\n";
+    std::cerr << "Scores " << state.Score(BLUE) << ' ' << state.Score(RED) << "\n";
   }
   std::cerr << "Game is over. Exiting." << std::endl;
 }
