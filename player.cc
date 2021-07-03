@@ -1,19 +1,10 @@
 #include "common.h"
 #include "game.h"
+#include "random.h"
 
 #include <iostream>
-#include <random>
 
 namespace {
-
-// TODO: support seed from command line to make player deterministic?
-std::mt19937 CreateRng() {
-  std::random_device r;
-  std::seed_seq s{r(), r(), r(), r(), r(), r(), r(), r()};
-  return std::mt19937(s);
-}
-
-std::mt19937 rng = CreateRng();
 
 std::string GetLine() {
   std::string line;
@@ -26,13 +17,6 @@ std::string GetLine() {
     exit(EXIT_SUCCESS);
   }
   return line;
-}
-
-// Returns a random integer between 0 (inclusive) and limit (exclusive).
-int RandInt(int limit) {
-  assert(limit > 0);
-  std::uniform_int_distribution<int> dist(0, limit - 1);
-  return dist(rng);
 }
 
 Move ParseAndValidateMove(const State &state, const std::string &line) {
@@ -48,18 +32,56 @@ Move ParseAndValidateMove(const State &state, const std::string &line) {
   return move;
 }
 
-Move SelectRandomMove(const State &state) {
-  std::vector<Move> moves;
+constexpr int inf = 999999999;
+
+int Evaluate(const State &state, Player target_player) {
+  return state.Score(target_player) * 100 + state.Score(Other(target_player));
+}
+
+int MinimaxSearch(State &state, int depth, Player target_player) {
+  Player next_player;
+  if (depth <= 0|| (next_player = state.NextPlayer()) == NO_PLAYER) {
+    return Evaluate(state, target_player);
+  }
+  assert(next_player != RANDOM);
+  int best_value = next_player == target_player ? -inf : +inf;
   for (int r = 0; r < H; ++r) {
     for (int c = 0; c < W; ++c) {
       if (!state.IsOccupied(r, c)) {
         for (Tile tile : {LEFT, STRAIGHT, RIGHT}) {
-          moves.push_back({r, c, tile});
+          Move move = {.row = r, .col = c, .tile = tile};
+          UndoState undo_state;
+          state.Execute(move, &undo_state);
+          int value = MinimaxSearch(state, depth - 1, target_player);
+          state.Undo(move, undo_state);
+          if (next_player == target_player ? value > best_value : value < best_value) {
+            best_value = value;
+          }
         }
       }
     }
   }
-  return moves[RandInt(moves.size())];
+  return best_value;
+}
+
+int MinimaxSearch(State &state, int depth, Move &best_move) {
+  assert(depth > 0);
+  Player next_player = state.NextPlayer();
+  assert(next_player == BLUE || next_player == RED);
+  int best_value = -inf;
+  std::vector<Move> moves = state.GenerateMoves();
+  Shuffle(moves);
+  for (const Move &move : moves) {
+    UndoState undo_state;
+    state.Execute(move, &undo_state);
+    int value = MinimaxSearch(state, depth - 1, next_player);
+    state.Undo(move, undo_state);
+    if (value > best_value) {
+      best_value = value;
+      best_move = move;
+    }
+  }
+  return best_value;
 }
 
 }  // namespace
@@ -70,7 +92,15 @@ int main() {
   for (Player next_player; (next_player = state.NextPlayer()) != NO_PLAYER; ) {
     std::string move_string;
     if (next_player == my_player) {
-      move_string = FormatMove(SelectRandomMove(state));
+      Move my_move;
+      if (0) {
+        // Select random move.
+        std::vector<Move> moves = state.GenerateMoves();
+        my_move = moves[RandInt(moves.size())];
+      } else {
+        std::cerr << "Value " << MinimaxSearch(state, 2, my_move) << std::endl;
+      }
+      move_string = FormatMove(my_move);
       std::cerr << "Sent [" << move_string << "]" << std::endl;
       std::cout << move_string << std::endl;
     } else {
@@ -87,8 +117,10 @@ int main() {
       }
       std::cerr << "Received [" << move_string << "]" << std::endl;
     }
-    state.Execute(ParseAndValidateMove(state, move_string));
-    std::cerr << "Scores " << state.Score(BLUE) << ' ' << state.Score(RED) << "\n";
+    state.Execute(ParseAndValidateMove(state, move_string), nullptr);
+    if (next_player != RANDOM) {
+      std::cerr << "Scores " << state.Score(BLUE) << ' ' << state.Score(RED) << "\n";
+    }
   }
   std::cerr << "Game is over. Exiting." << std::endl;
 }

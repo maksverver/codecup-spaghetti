@@ -9,6 +9,7 @@ constexpr int RANDOM_TILE_COUNT = 2;
 constexpr int CYCLE_SCORE = -5;
 constexpr int LOOPBACK_SCORE = -3;
 constexpr int VERTEX_COUNT = (H + 1)*W + (W + 1)*H;
+constexpr int MAX_MOVE_COUNT = H*W*3;
 
 enum Tile { NO_TILE = 0, LEFT = 1, STRAIGHT = 2, RIGHT = 3 };
 
@@ -37,6 +38,10 @@ struct Move {
 
 class State;
 
+struct UndoState {
+  int a, b, c, d, score;
+};
+
 class State {
 public:
   State() {
@@ -58,7 +63,11 @@ public:
     return ::NextPlayer(moves_played);
   }
 
-  void Execute(const Move &m);
+  int GenerateMoves(Move (&moves)[MAX_MOVE_COUNT]);
+  std::vector<Move> GenerateMoves();
+
+  void Execute(const Move &m, UndoState *undo_state);
+  void Undo(const Move &m, const UndoState &undo_state);
 
 private:
   struct Path {
@@ -66,8 +75,8 @@ private:
     int length;
   };
 
-  void Connect(int a, int b, int c, int d, Player player);
-  void Connect(int a, int b, Player player);
+  int Connect(int a, int b, Player player);
+  void Disconnect(int a, int b);
 
   bool occupied[H][W] = {};
   int scores[2] = {50, 50};
