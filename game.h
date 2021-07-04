@@ -31,8 +31,6 @@ inline int PlayerIndex(Player player) {
   return player - BLUE;
 }
 
-std::string FormatPlayer(Player player);
-
 Player NextPlayer(int moveIndex);
 
 struct Move {
@@ -40,14 +38,6 @@ struct Move {
   int col;
   Tile tile;
 };
-
-bool ParseMove(const std::string_view &s, Move &move);
-
-std::string FormatMove(const Move &move);
-
-bool ParseMoves(const std::string_view &s, std::vector<Move> &moves);
-
-std::string FormatMoves(const std::vector<Move> &moves);
 
 struct UndoState {
   int a, b, c, d, score;

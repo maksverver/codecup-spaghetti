@@ -1,5 +1,6 @@
 #include "common.h"
 #include "game.h"
+#include "io.h"
 #include "minimax.h"
 
 #include <cstdlib>

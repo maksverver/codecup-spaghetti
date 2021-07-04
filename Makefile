@@ -12,7 +12,7 @@ OBJS=$(SRCS:.cc=.o)
 DEPS=$(SRCS:.cc=.d)
 BINS=analyze game_test player
 
-COMMON_OBJS = game.o minimax.o random.o
+COMMON_OBJS = game.o io.o minimax.o random.o
 
 all: $(BINS)
 
