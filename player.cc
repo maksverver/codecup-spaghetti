@@ -3,7 +3,9 @@
 #include "io.h"
 #include "minimax.h"
 #include "random.h"
+#include "timing.h"
 
+#include <iomanip>
 #include <iostream>
 
 namespace {
@@ -39,6 +41,7 @@ Move ParseAndValidateMove(const State &state, const std::string &line) {
 int main() {
   State state;
   Player my_player = NO_PLAYER;
+  double total_time = 0;
   for (Player next_player; (next_player = state.NextPlayer()) != NO_PLAYER; ) {
     std::string move_string;
     if (next_player == my_player) {
@@ -48,9 +51,13 @@ int main() {
         std::vector<Move> moves = state.GenerateMoves();
         my_move = moves[RandInt(moves.size())];
       } else {
+        double time_start = TimeElapsed();
         const int depth = MaxSearchDepth(state);
         std::cerr << "Depth " << depth << " Value " << std::flush;
-        std::cerr << MinimaxSearch(state, depth, my_move) << std::endl;
+        std::cerr << MinimaxSearch(state, depth, my_move);
+        double time_taken = TimeElapsed() - time_start;
+        total_time += time_taken;
+        std::cerr << " (" << std::fixed << std::setprecision(3) << time_taken << "s; total: " << total_time << "s)" << std::endl;
       }
       move_string = FormatMove(my_move);
       std::cerr << "Sent [" << move_string << "]" << std::endl;
