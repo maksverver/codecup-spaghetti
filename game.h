@@ -17,6 +17,10 @@ enum Player { NO_PLAYER = 0, BLUE = 1, RED = 2, RANDOM = 3 };
 
 static_assert(RED == BLUE + 1);
 
+inline bool IsRegularPlayer(Player player) {
+  return player == RED || player == BLUE;
+}
+
 inline Player Other(Player player) {
   assert(player == BLUE || player == RED);
   return Player(RED + BLUE - player);
@@ -28,6 +32,7 @@ inline int PlayerIndex(Player player) {
 }
 
 std::string FormatPlayer(Player player);
+
 Player NextPlayer(int moveIndex);
 
 struct Move {
@@ -36,7 +41,13 @@ struct Move {
   Tile tile;
 };
 
-class State;
+bool ParseMove(const std::string_view &s, Move &move);
+
+std::string FormatMove(const Move &move);
+
+bool ParseMoves(const std::string_view &s, std::vector<Move> &moves);
+
+std::string FormatMoves(const std::vector<Move> &moves);
 
 struct UndoState {
   int a, b, c, d, score;
@@ -57,6 +68,10 @@ public:
   bool IsOccupied(int r, int c) const {
     assert(0 <= r && r < H && 0 <= c && c < W);
     return occupied[r][c];
+  }
+
+  bool IsValid(const Move &move) const {
+    return !IsOccupied(move.row, move.col);
   }
 
   Player NextPlayer() const {
@@ -84,7 +99,4 @@ private:
   Path path_index[VERTEX_COUNT];
 };
 
-bool ParseMove(const std::string &s, Move &move);
-std::string FormatMove(const Move &move);
-
-#endif  // GAME_H_INCLUDED
+#endif  // ndef GAME_H_INCLUDED

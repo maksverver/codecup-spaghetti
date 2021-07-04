@@ -11,5 +11,6 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <string_view>
 
 #endif  // ndef COMMON_H_INCLUDED

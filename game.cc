@@ -57,13 +57,28 @@ bool VertexOnOutside(int v) {
 
 }  // namespace
 
+std::string FormatPlayer(Player player) {
+  switch (player) {
+    case NO_PLAYER:
+      return "NO_PLAYER";
+    case BLUE:
+      return "BLUE";
+    case RED:
+      return "RED";
+    case RANDOM:
+      return "RANDOM";
+  }
+  assert(false);
+  return "";
+}
+
 Player NextPlayer(int moveIndex) {
   if (moveIndex >= H * W) return NO_PLAYER;
   if (moveIndex < RANDOM_TILE_COUNT) return RANDOM;
   return Player(((moveIndex - RANDOM_TILE_COUNT) & 1) + BLUE);
 }
 
-bool ParseMove(const std::string &s, Move &move) {
+bool ParseMove(const std::string_view &s, Move &move) {
   if (s.size() != 3) return false;
   int row = s[0] - 'a';
   if (row < 0 || row >= H) return false;
@@ -84,6 +99,34 @@ std::string FormatMove(const Move &move) {
   buf[2] = TileToChar(move.tile);
   buf[3] = '\0';
   return std::string(buf);
+}
+
+bool ParseMoves(const std::string_view &s, std::vector<Move> &moves) {
+  std::vector<Move> result;
+  if (!s.empty()) {
+    if (s.size() % 4 != 3) return false;
+    int n = (s.size() + 1)/4;
+    result.resize(n);
+    for (int i = 0; i < n; ++i) {
+      if (i != 0 && s[4*i - 1] != ',') return false;
+      if (!ParseMove(std::string_view(&s[4*i], 3), result[i])) return false;
+    }
+  }
+  moves.swap(result);
+  return true;
+}
+
+std::string FormatMoves(const std::vector<Move> &moves) {
+  std::string s;
+  if (!moves.empty()) {
+    s.reserve(moves.size()*4 - 1);
+    s += FormatMove(moves[0]);
+    for (int i = 1; i < moves.size(); ++i) {
+      s += ',';
+      s += FormatMove(moves[i]);
+    }
+  }
+  return s;
 }
 
 void State::Execute(const Move &m, UndoState *undo_state) {
