@@ -6,8 +6,10 @@
 #endif
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 
+#include <algorithm>
 #include <array>
 #include <vector>
 #include <string>

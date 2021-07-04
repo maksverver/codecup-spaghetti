@@ -5,6 +5,9 @@
 constexpr int inf = 999999999;
 
 int Evaluate(const State &state, Player target_player) {
+  // Is this a good evaluation function? It leads to the AI giving away
+  // lots of points so long as he doesn't have to take a loss himself, which
+  // is kind of strange. But maybe that's the right way to play the game?
   return state.Score(target_player) * 100 +
       (100 - state.Score(Other(target_player)));
 }

@@ -51,13 +51,21 @@ public:
     }
   }
 
-  int Score(Player player) const  {
-    return scores[PlayerIndex(player)];
-  }
-
   bool IsOccupied(int r, int c) const {
     assert(0 <= r && r < H && 0 <= c && c < W);
     return occupied[r][c];
+  }
+
+  int MovesPlayed() const {
+    return moves_played;
+  }
+
+  int MovesLeft() const {
+    return H*W - moves_played;
+  }
+
+  int Score(Player player) const  {
+    return scores[PlayerIndex(player)];
   }
 
   bool IsValid(const Move &move) const {

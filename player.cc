@@ -48,7 +48,9 @@ int main() {
         std::vector<Move> moves = state.GenerateMoves();
         my_move = moves[RandInt(moves.size())];
       } else {
-        std::cerr << "Value " << MinimaxSearch(state, 2, my_move) << std::endl;
+        const int depth = MaxSearchDepth(state);
+        std::cerr << "Depth " << depth << " Value " << std::flush;
+        std::cerr << MinimaxSearch(state, depth, my_move) << std::endl;
       }
       move_string = FormatMove(my_move);
       std::cerr << "Sent [" << move_string << "]" << std::endl;
